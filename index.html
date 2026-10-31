@@ -17,9 +17,6 @@
 
   <title>حاسبة الذهب | Gold Calculator</title>
 
-  <!-- =========================
-       CSS - Application Styles
-  ========================== -->
   <style>
     /* General */
     * {
@@ -132,7 +129,7 @@
       flex: 1;
     }
 
-    /* Text Elements */
+    /* Text */
     .pill {
       display: inline-block;
       background: #f1e5cd;
@@ -148,15 +145,7 @@
       line-height: 1.8;
     }
 
-    .warning {
-      color: #a74736;
-    }
-
-    .link {
-      color: #84652c;
-    }
-
-    /* Calculation Results */
+    /* Results */
     .result {
       background: #33291e;
       color: #fff9ee;
@@ -187,7 +176,6 @@
       direction: ltr;
     }
 
-    /* Footer */
     footer {
       text-align: center;
       margin-top: 28px;
@@ -200,9 +188,7 @@
 <body>
   <main>
 
-    <!-- =========================
-         HEADER
-    ========================== -->
+    <!-- HEADER -->
     <header class="top">
       <div class="logo">✦</div>
 
@@ -218,9 +204,7 @@
       </p>
     </header>
 
-    <!-- =========================
-         GOLD PRICE SECTION
-    ========================== -->
+    <!-- GOLD PRICE -->
     <section class="card">
       <h2>
         سعر الذهب
@@ -248,7 +232,7 @@
         min="0"
         step="0.01"
         inputmode="decimal"
-        placeholder="اكتبي السعر من المصدر الرسمي"
+        placeholder="أدخلي سعر الغرام"
       >
 
       <p class="muted">
@@ -259,7 +243,7 @@
 
       <div class="row">
         <button class="light" id="source">
-          افتحي Dubai City of Gold ↗
+          Dubai City of Gold ↗
         </button>
 
         <button class="light" id="save">
@@ -270,9 +254,7 @@
       <p class="muted" id="savedAt"></p>
     </section>
 
-    <!-- =========================
-         JEWELRY DETAILS
-    ========================== -->
+    <!-- JEWELRY DETAILS -->
     <section class="card">
       <h2>تفاصيل القطعة</h2>
 
@@ -286,7 +268,7 @@
         min="0"
         step="0.001"
         inputmode="decimal"
-        value="6.7"
+        placeholder="أدخلي وزن القطعة"
       >
 
       <label for="mode">
@@ -308,7 +290,7 @@
       </select>
 
       <label id="amountLabel" for="amount">
-        السعر النهائي (درهم)
+        السعر النهائي شامل الضريبة (درهم)
       </label>
 
       <input
@@ -317,7 +299,7 @@
         min="0"
         step="0.01"
         inputmode="decimal"
-        value="3300"
+        placeholder="أدخلي المبلغ"
       >
 
       <label for="vat">
@@ -335,9 +317,7 @@
       >
     </section>
 
-    <!-- =========================
-         RESULTS
-    ========================== -->
+    <!-- RESULTS -->
     <section class="card result">
       <div class="muted">
         السعر النهائي المتوقع
@@ -366,15 +346,12 @@
       </div>
 
       <p class="muted" id="note">
-        الحساب يفترض خضوع قيمة الذهب
-        والمصنعية للضريبة وعدم وجود
-        أحجار أو رسوم منفصلة.
+        أدخلي سعر الذهب والوزن والمبلغ
+        لإظهار الحسبة.
       </p>
     </section>
 
-    <!-- =========================
-         SHOPPING TIPS
-    ========================== -->
+    <!-- SHOPPING TIPS -->
     <section class="card">
       <h2>قبل الدفع</h2>
 
@@ -397,18 +374,16 @@
 
   </main>
 
-  <!-- =========================
-       JAVASCRIPT
-  ========================== -->
   <script>
     "use strict";
 
-    // DOM helper
+    // =========================
+    // DOM HELPERS
+    // =========================
+
     const $ = (id) => document.getElementById(id);
 
-    // Input fields
     const inputIds = [
-      "karat",
       "rate",
       "weight",
       "mode",
@@ -419,8 +394,9 @@
     let lastCalculation = "";
 
     // =========================
-    // Currency Formatter
+    // CURRENCY FORMAT
     // =========================
+
     function formatCurrency(value) {
       if (!Number.isFinite(value)) {
         return "—";
@@ -435,18 +411,61 @@
     }
 
     // =========================
-    // Calculate Gold Price
+    // CALCULATE GOLD
     // =========================
+
     function updateCalculation() {
-      const rate = Number($("rate").value);
-      const weight = Number($("weight").value);
-      const amount = Number($("amount").value);
-      const vat = Number($("vat").value) / 100;
+      const rateText = $("rate").value.trim();
+      const weightText = $("weight").value.trim();
+      const amountText = $("amount").value.trim();
+      const vatText = $("vat").value.trim();
+
+      const rate = Number(rateText);
+      const weight = Number(weightText);
+      const amount = Number(amountText);
+      const vatPercent = Number(vatText);
+      const vat = vatPercent / 100;
       const mode = $("mode").value;
+
+      const labels = {
+        final: "السعر النهائي شامل الضريبة (درهم)",
+        making: "المصنعية على القطعة (درهم)",
+        pergram: "المصنعية للغرام (درهم)"
+      };
+
+      $("amountLabel").textContent = labels[mode];
+
+      const isValid =
+        rateText !== "" &&
+        weightText !== "" &&
+        amountText !== "" &&
+        vatText !== "" &&
+        Number.isFinite(rate) &&
+        Number.isFinite(weight) &&
+        Number.isFinite(amount) &&
+        Number.isFinite(vatPercent) &&
+        rate > 0 &&
+        weight > 0 &&
+        amount >= 0 &&
+        vatPercent >= 0 &&
+        vatPercent <= 100;
+
+      if (!isValid) {
+        ["total", "gold", "making", "pergram", "tax"]
+          .forEach((id) => {
+            $(id).textContent = "—";
+          });
+
+        $("note").textContent =
+          "أدخلي سعر الذهب والوزن والمبلغ لإظهار الحسبة.";
+
+        lastCalculation = "";
+        return;
+      }
 
       const goldValue = rate * weight;
 
-      let makingCharge;
+      let makingCharge = 0;
 
       if (mode === "final") {
         makingCharge =
@@ -463,43 +482,21 @@
           : (goldValue + makingCharge) * (1 + vat);
 
       const tax = total - (goldValue + makingCharge);
-
-      // Update amount label
-      const labels = {
-        final: "السعر النهائي شامل الضريبة (درهم)",
-        making: "المصنعية على القطعة (درهم)",
-        pergram: "المصنعية للغرام (درهم)"
-      };
-
-      $("amountLabel").textContent = labels[mode];
-
-      // Validate inputs
-      const isValid =
-        rate > 0 &&
-        weight > 0 &&
-        amount >= 0 &&
-        vat >= 0;
+      const makingPerGram = makingCharge / weight;
 
       const results = {
-        total: total,
+        total,
         gold: goldValue,
         making: makingCharge,
-        pergram: makingCharge / weight,
-        tax: tax
+        pergram: makingPerGram,
+        tax
       };
 
-      // Display results
       Object.entries(results).forEach(([id, value]) => {
-        $(id).textContent = isValid
-          ? formatCurrency(value)
-          : "—";
+        $(id).textContent = formatCurrency(value);
       });
 
-      // Display calculation note
-      if (!isValid) {
-        $("note").textContent =
-          "أدخلي السعر والوزن لإظهار الحساب.";
-      } else if (makingCharge < 0) {
+      if (makingCharge < 0) {
         $("note").textContent =
           "تنبيه: السعر النهائي أقل من قيمة الذهب وحدها؛ راجعي المدخلات.";
       } else {
@@ -507,24 +504,22 @@
           "الحساب يفترض ضريبة على قيمة الذهب والمصنعية، دون رسوم أو أحجار منفصلة.";
       }
 
-      // Prepare copy text
-      lastCalculation = isValid
-        ? [
-            `عيار ${$("karat").value}`,
-            `الوزن: ${weight} غرام`,
-            `سعر الغرام: ${formatCurrency(rate)}`,
-            `قيمة الذهب: ${formatCurrency(goldValue)}`,
-            `المصنعية: ${formatCurrency(makingCharge)}`,
-            `المصنعية للغرام: ${formatCurrency(makingCharge / weight)}`,
-            `الضريبة: ${formatCurrency(tax)}`,
-            `الإجمالي: ${formatCurrency(total)}`
-          ].join("\n")
-        : "";
+      lastCalculation = [
+        `عيار ${$("karat").value}`,
+        `الوزن: ${weight} غرام`,
+        `سعر الغرام: ${formatCurrency(rate)}`,
+        `قيمة الذهب: ${formatCurrency(goldValue)}`,
+        `المصنعية: ${formatCurrency(makingCharge)}`,
+        `المصنعية للغرام: ${formatCurrency(makingPerGram)}`,
+        `الضريبة: ${formatCurrency(tax)}`,
+        `الإجمالي: ${formatCurrency(total)}`
+      ].join("\n");
     }
 
     // =========================
-    // Local Storage
+    // LOCAL STORAGE
     // =========================
+
     function getSavedRates() {
       try {
         return JSON.parse(
@@ -535,19 +530,30 @@
       }
     }
 
+    // Clear old saved prices once.
+    // New prices will remain saved normally.
+    function clearOldRatesOnce() {
+      const migrationKey = "goldRatesCleanedV2";
+
+      if (localStorage.getItem(migrationKey) === "true") {
+        return;
+      }
+
+      localStorage.removeItem("goldRates");
+      localStorage.setItem(migrationKey, "true");
+    }
+
     function restoreGoldRate() {
       const karat = $("karat").value;
       const rates = getSavedRates();
       const savedRate = rates[karat];
 
-      $("rate").value =
-        savedRate?.rate ??
-        (karat === "21" ? "414" : "");
+      $("rate").value = savedRate?.rate ?? "";
 
       $("savedAt").textContent = savedRate?.at
-        ? "آخر سعر حفظتيه: " +
+        ? "آخر تحديث للسعر: " +
           new Date(savedRate.at).toLocaleString("ar-AE")
-        : "القيمة الأولية لعيار 21 هي 414 درهم حسب السعر اللي ذكرتيه، وليست سعراً مباشراً.";
+        : "";
 
       $("status").textContent = savedRate?.at
         ? "سعر محفوظ"
@@ -557,11 +563,22 @@
     }
 
     function saveGoldRate() {
+      const rate = Number($("rate").value);
+
+      if (
+        $("rate").value.trim() === "" ||
+        !Number.isFinite(rate) ||
+        rate <= 0
+      ) {
+        alert("أدخلي سعر غرام صحيح أولاً.");
+        return;
+      }
+
       const rates = getSavedRates();
       const karat = $("karat").value;
 
       rates[karat] = {
-        rate: $("rate").value,
+        rate: rate,
         at: new Date().toISOString()
       };
 
@@ -574,8 +591,9 @@
     }
 
     // =========================
-    // Copy Calculation
+    // COPY CALCULATION
     // =========================
+
     async function copyCalculation() {
       if (!lastCalculation) {
         return;
@@ -593,8 +611,9 @@
     }
 
     // =========================
-    // Event Listeners
+    // EVENT LISTENERS
     // =========================
+
     inputIds.forEach((id) => {
       $(id).addEventListener(
         "input",
@@ -625,11 +644,12 @@
     );
 
     // =========================
-    // Initialize Application
+    // INITIALIZE APP
     // =========================
+
+    clearOldRatesOnce();
     restoreGoldRate();
 
-    // Register Service Worker
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("./sw.js")
